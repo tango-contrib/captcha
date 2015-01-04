@@ -104,8 +104,6 @@ func (c *Captchas) Verify(id string, challenge string) bool {
 		return false
 	}
 
-	fmt.Println("chars:", chars)
-
 	defer c.store.Delete(key)
 
 	if len(chars) != len(challenge) {
