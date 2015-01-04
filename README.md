@@ -20,12 +20,12 @@ import (
 )
 
 type CaptchaAction struct {
-	Captcha
+	captcha.Captcha
 	renders.Renderer
 }
 
 func (c *CaptchaAction) Get() {
-	c.Renderer.Render("captcha.html", renders.T{
+	c.Render("captcha.html", renders.T{
 		"captcha": c.CreateHtml(),
 	})
 }
