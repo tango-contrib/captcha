@@ -3,8 +3,8 @@ package captcha
 import (
 	"testing"
 
-	"github.com/tango-contrib/renders"
 	"github.com/macaron-contrib/cache"
+	"github.com/tango-contrib/renders"
 
 	"github.com/lunny/tango"
 )
@@ -29,7 +29,9 @@ func (c *CaptchaAction) Post() string {
 
 func TestCaptcha(t *testing.T) {
 	tg := tango.Classic()
-	c, _ := cache.NewCache("memory", `{"interval":120}`)
+	c, _ := cache.NewCacher("memory", cache.Options{
+		Interval: 120,
+	})
 	tg.Use(New(Options{}, c), renders.New())
 	tg.Any("/", new(CaptchaAction))
 	tg.Run()
