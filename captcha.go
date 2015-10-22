@@ -19,9 +19,9 @@ package captcha
 import (
 	"fmt"
 	"html/template"
+	"net/http"
 	"path"
 	"strings"
-	"net/http"
 
 	"github.com/Unknwon/com"
 	"github.com/macaron-contrib/cache"
@@ -51,7 +51,7 @@ type Captchas struct {
 func New(opt Options, c cache.Cache) *Captchas {
 	opt = prepareOptions([]Options{opt})
 	return &Captchas{
-		store: c,
+		store:            c,
 		SubURL:           opt.SubURL,
 		URLPrefix:        opt.URLPrefix,
 		FieldIdName:      opt.FieldIdName,
@@ -72,6 +72,10 @@ func (c *Captchas) key(id string) string {
 // generate rand chars with default chars
 func (c *Captchas) genRandChars() string {
 	return string(com.RandomCreateBytes(c.ChallengeNums, defaultChars...))
+}
+
+func (c *Captchas) GenRandChars() string {
+	return c.genRandChars()
 }
 
 // create a new captcha id
@@ -193,7 +197,7 @@ func prepareOptions(options []Options) Options {
 }
 
 type Captcha struct {
-	c *Captchas
+	c   *Captchas
 	req *http.Request
 }
 
