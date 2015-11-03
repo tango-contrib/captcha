@@ -24,9 +24,8 @@ import (
 	"strings"
 
 	"github.com/Unknwon/com"
-	"github.com/macaron-contrib/cache"
-
 	"github.com/lunny/tango"
+	"github.com/tango-contrib/cache"
 )
 
 var (
@@ -35,32 +34,14 @@ var (
 
 // Captcha represents a captcha service.
 type Captchas struct {
-	store            cache.Cache
-	SubURL           string
-	URLPrefix        string
-	FieldIdName      string
-	FieldCaptchaName string
-	StdWidth         int
-	StdHeight        int
-	ChallengeNums    int
-	Expiration       int64
-	CachePrefix      string
+	Options
 }
 
 // NewCaptcha initializes and returns a captcha with given options.
-func New(opt Options, c cache.Cache) *Captchas {
-	opt = prepareOptions([]Options{opt})
+func New(opts ...Options) *Captchas {
+	opt := prepareOptions(opts)
 	return &Captchas{
-		store:            c,
-		SubURL:           opt.SubURL,
-		URLPrefix:        opt.URLPrefix,
-		FieldIdName:      opt.FieldIdName,
-		FieldCaptchaName: opt.FieldCaptchaName,
-		StdWidth:         opt.Width,
-		StdHeight:        opt.Height,
-		ChallengeNums:    opt.ChallengeNums,
-		Expiration:       opt.Expiration,
-		CachePrefix:      opt.CachePrefix,
+		Options: opt,
 	}
 }
 
@@ -81,7 +62,7 @@ func (c *Captchas) GenRandChars() string {
 // create a new captcha id
 func (c *Captchas) CreateCaptcha() (string, error) {
 	id := string(com.RandomCreateBytes(15))
-	if err := c.store.Put(c.key(id), c.genRandChars(), c.Expiration); err != nil {
+	if err := c.Caches.Put(c.key(id), c.genRandChars(), c.Expiration); err != nil {
 		return "", err
 	}
 	return id, nil
@@ -102,13 +83,13 @@ func (c *Captchas) Verify(id string, challenge string) bool {
 	var chars string
 
 	key := c.key(id)
-	if v, ok := c.store.Get(key).(string); ok {
+	if v, ok := c.Caches.Get(key).(string); ok {
 		chars = v
 	} else {
 		return false
 	}
 
-	defer c.store.Delete(key)
+	defer c.Caches.Delete(key)
 
 	if len(chars) != len(challenge) {
 		return false
@@ -137,6 +118,7 @@ func (c *Captchas) CreateHtml() template.HTML {
 }
 
 type Options struct {
+	Caches *cache.Caches
 	// Suburl path. Default is empty.
 	SubURL string
 	// URL prefix of getting captcha pictures. Default is "/captcha/".
@@ -161,6 +143,10 @@ func prepareOptions(options []Options) Options {
 	var opt Options
 	if len(options) > 0 {
 		opt = options[0]
+	}
+
+	if opt.Caches == nil {
+		opt.Caches = cache.New(cache.Options{Adapter: "memory", Interval: 120})
 	}
 
 	opt.SubURL = strings.TrimSuffix(opt.SubURL, "/")
@@ -252,13 +238,13 @@ func (c *Captchas) Handle(ctx *tango.Context) {
 	// Reload captcha.
 	if len(ctx.Req().FormValue("reload")) > 0 {
 		chars = c.genRandChars()
-		if err := c.store.Put(key, chars, c.Expiration); err != nil {
+		if err := c.Caches.Put(key, chars, c.Expiration); err != nil {
 			ctx.WriteHeader(http.StatusInternalServerError)
 			ctx.Write([]byte("captcha reload error"))
 			panic(fmt.Errorf("fail to reload captcha: %v", err))
 		}
 	} else {
-		if v, ok := c.store.Get(key).(string); ok {
+		if v, ok := c.Caches.Get(key).(string); ok {
 			chars = v
 		} else {
 			ctx.WriteHeader(http.StatusNotFound)
@@ -267,7 +253,7 @@ func (c *Captchas) Handle(ctx *tango.Context) {
 		}
 	}
 
-	if _, err := NewImage([]byte(chars), c.StdWidth, c.StdHeight).WriteTo(ctx.ResponseWriter); err != nil {
+	if _, err := NewImage([]byte(chars), c.Width, c.Height).WriteTo(ctx.ResponseWriter); err != nil {
 		panic(fmt.Errorf("fail to write captcha: %v", err))
 	}
 }

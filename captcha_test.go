@@ -7,10 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/macaron-contrib/cache"
-	"github.com/tango-contrib/renders"
-
 	"github.com/lunny/tango"
+	"github.com/tango-contrib/renders"
 )
 
 type CaptchaAction struct {
@@ -37,10 +35,7 @@ func TestCaptcha(t *testing.T) {
 	recorder.Body = buff
 
 	tg := tango.Classic()
-	c, _ := cache.NewCacher("memory", cache.Options{
-		Interval: 120,
-	})
-	tg.Use(New(Options{}, c), renders.New())
+	tg.Use(New(), renders.New())
 	tg.Any("/", new(CaptchaAction))
 
 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
