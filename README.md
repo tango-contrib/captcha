@@ -15,7 +15,7 @@ Middleware captcha a middleware that provides captcha service for [Tango](https:
 // main.go
 import (
 	"github.com/lunny/tango"
-	"github.com/macaron-contrib/cache"
+	"github.com/tango-contrib/cache"
 	"github.com/tango-contrib/captcha"
 )
 
@@ -39,8 +39,7 @@ func (c *CaptchaAction) Post() string {
 
 func main() {
   	t := tango.Classic()
-	c, _ := cache.NewCache("memory", `{"interval":120}`)
-	t.Use(captcha.New(captcha.Options{}, c))
+	t.Use(captcha.New())
 	t.Any("/", new(CaptchaAction))
 	t.Run()
 }
