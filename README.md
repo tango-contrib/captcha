@@ -1,4 +1,4 @@
-captcha [![Build Status](https://drone.io/github.com/tango-contrib/captcha/status.png)](https://drone.io/github.com/tango-contrib/captcha/latest) [![](http://gocover.io/_badge/github.com/tango-contrib/captcha)](http://gocover.io/github.com/tango-contrib/captcha)
+captcha [![CircleCI](https://circleci.com/gh/tango-contrib/captcha/tree/master.svg?style=svg)](https://circleci.com/gh/tango-contrib/captcha/tree/master) [![](http://gocover.io/_badge/github.com/tango-contrib/captcha)](http://gocover.io/github.com/tango-contrib/captcha)
 ====
 
 Middleware captcha a middleware that provides captcha service for [Tango](https://github.com/lunny/tango).
